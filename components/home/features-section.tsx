@@ -1,5 +1,6 @@
 import { MapPin, Headphones, BookOpen } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { getPageContent } from "@/lib/page-content"
 
 const features = [
   {
@@ -19,13 +20,15 @@ const features = [
   },
 ]
 
-export function FeaturesSection() {
+export async function FeaturesSection() {
+  const featuresContent = await getPageContent("home", "features")
+
   return (
     <section className="py-16 md:py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance">
-            Verken het verleden
+            {featuresContent.title}
           </h2>
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className="w-8 h-px bg-primary" />
@@ -33,7 +36,7 @@ export function FeaturesSection() {
             <div className="w-8 h-px bg-primary" />
           </div>
           <p className="max-w-2xl mx-auto text-muted-foreground leading-relaxed text-pretty">
-            Wandel langs monumentale locaties en luister naar de verhalen die Philippine hebben gevormd. Van de oude haven tot de legendarische mosselcultuur.
+            {featuresContent.content}
           </p>
         </div>
 

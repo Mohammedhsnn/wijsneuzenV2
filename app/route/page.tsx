@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MapPin, Clock, Footprints, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { getPageContent } from "@/lib/page-content"
 
 const informatieBorden = [
   {
@@ -48,7 +49,9 @@ const informatieBorden = [
   },
 ]
 
-export default function RoutePage() {
+export default async function RoutePage() {
+  const heroContent = await getPageContent("route", "hero")
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
@@ -61,11 +64,11 @@ export default function RoutePage() {
           <div className="container mx-auto px-4 relative">
             <div className="max-w-2xl mx-auto text-center">
               <h1 className="font-display text-4xl md:text-5xl font-bold mb-4 text-balance">
-                De Wandelroute
+                {heroContent.title}
               </h1>
               <div className="w-16 h-1 bg-primary mx-auto mb-6" />
               <p className="text-cream/80 leading-relaxed mb-8">
-                Volg de historische route langs 5 informatieborden en ontdek de rijke geschiedenis van Philippine.
+                {heroContent.content}
               </p>
               
               {/* Route stats */}

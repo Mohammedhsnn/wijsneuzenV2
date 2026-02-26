@@ -1,0 +1,364 @@
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { ContentEditor } from "@/components/admin/content-editor"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import {
+  Save,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
+  Database,
+  FileText,
+  Home,
+  MapPin,
+  Users,
+  BookOpen,
+  HelpCircle,
+  Loader2,
+} from "lucide-react"
+import Link from "next/link"
+
+interface PageSection {
+  pageSlug: string
+  sectionKey: string
+  title: string
+  content: string
+}
+
+const pageConfig: Record<
+  string,
+  { label: string; icon: React.ReactNode; description: string }
+> = {
+  home: {
+    label: "Homepage",
+    icon: <Home className="h-4 w-4" />,
+    description: "De hoofdpagina van de website",
+  },
+  route: {
+    label: "De Route",
+    icon: <MapPin className="h-4 w-4" />,
+    description: "De wandelroute pagina",
+  },
+  wijsneuzen: {
+    label: "De Wijsneuzen",
+    icon: <Users className="h-4 w-4" />,
+    description: "Over het team en het project",
+  },
+  blog: {
+    label: "Blog",
+    icon: <BookOpen className="h-4 w-4" />,
+    description: "Blog overzichtspagina",
+  },
+  quiz: {
+    label: "Quiz",
+    icon: <HelpCircle className="h-4 w-4" />,
+    description: "Quiz pagina",
+  },
+}
+
+const sectionLabels: Record<string, string> = {
+  hero: "Hero Sectie",
+  features: "Kenmerken Sectie",
+  "route-preview": "Route Preview",
+  "our-story": "Ons Verhaal",
+  contact: "Contact Sectie",
+}
+
+export default function AdminDashboard() {
+  const [sections, setSections] = useState<PageSection[]>([])
+  const [activePage, setActivePage] = useState<string>("home")
+  const [saving, setSaving] = useState<string | null>(null)
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | "info"
+    message: string
+  } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [seeding, setSeeding] = useState(false)
+
+  const fetchContent = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/content")
+      if (!res.ok) throw new Error("Failed to fetch")
+      const data = await res.json()
+      setSections(data)
+    } catch {
+      setStatus({ type: "error", message: "Kon content niet laden." })
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchContent()
+  }, [fetchContent])
+
+  const handleSave = async (section: PageSection) => {
+    const key = `${section.pageSlug}-${section.sectionKey}`
+    setSaving(key)
+    setStatus(null)
+
+    try {
+      const res = await fetch("/api/admin/content/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(section),
+      })
+
+      if (!res.ok) throw new Error("Failed to save")
+
+      setStatus({
+        type: "success",
+        message: `"${sectionLabels[section.sectionKey] || section.sectionKey}" opgeslagen!`,
+      })
+    } catch {
+      setStatus({ type: "error", message: "Opslaan mislukt. Probeer opnieuw." })
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  const handleSeed = async () => {
+    setSeeding(true)
+    setStatus(null)
+    try {
+      const res = await fetch("/api/admin/seed", { method: "POST" })
+      if (!res.ok) throw new Error("Failed to seed")
+      const data = await res.json()
+      setStatus({
+        type: "success",
+        message: data.message,
+      })
+      await fetchContent()
+    } catch {
+      setStatus({ type: "error", message: "Database seeden mislukt." })
+    } finally {
+      setSeeding(false)
+    }
+  }
+
+  const updateSection = (
+    pageSlug: string,
+    sectionKey: string,
+    field: "title" | "content",
+    value: string
+  ) => {
+    setSections((prev) =>
+      prev.map((s) =>
+        s.pageSlug === pageSlug && s.sectionKey === sectionKey
+          ? { ...s, [field]: value }
+          : s
+      )
+    )
+  }
+
+  const currentSections = sections.filter((s) => s.pageSlug === activePage)
+  const pages = Object.keys(pageConfig)
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <FileText className="h-6 w-6 text-primary" />
+            <h1 className="font-display text-xl font-bold text-foreground">
+              Admin Dashboard
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSeed}
+              disabled={seeding}
+            >
+              {seeding ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Database className="h-4 w-4 mr-2" />
+              )}
+              Database Seeden
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchContent}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Vernieuwen
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/">← Naar Website</Link>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Status Bar */}
+        {status && (
+          <div
+            className={`mb-6 flex items-center gap-2 rounded-lg p-3 text-sm ${
+              status.type === "success"
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : status.type === "error"
+                  ? "bg-red-50 text-red-800 border border-red-200"
+                  : "bg-blue-50 text-blue-800 border border-blue-200"
+            }`}
+          >
+            {status.type === "success" ? (
+              <CheckCircle className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
+            {status.message}
+          </div>
+        )}
+
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Sidebar - Page Navigation */}
+          <aside className="md:w-64 shrink-0">
+            <div className="sticky top-24">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                Pagina&apos;s
+              </h2>
+              <nav className="space-y-1">
+                {pages.map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setActivePage(page)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      activePage === page
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    {pageConfig[page].icon}
+                    {pageConfig[page].label}
+                    <Badge
+                      variant="secondary"
+                      className={`ml-auto text-xs ${
+                        activePage === page
+                          ? "bg-primary-foreground/20 text-primary-foreground"
+                          : ""
+                      }`}
+                    >
+                      {sections.filter((s) => s.pageSlug === page).length}
+                    </Badge>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+            <div className="mb-6">
+              <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
+                {pageConfig[activePage]?.icon}
+                {pageConfig[activePage]?.label}
+              </h2>
+              <p className="text-muted-foreground text-sm mt-1">
+                {pageConfig[activePage]?.description}
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : currentSections.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <Database className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    Geen secties gevonden voor deze pagina.
+                  </p>
+                  <Button onClick={handleSeed} variant="outline">
+                    <Database className="h-4 w-4 mr-2" />
+                    Database Seeden met Standaardinhoud
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {currentSections.map((section) => {
+                  const key = `${section.pageSlug}-${section.sectionKey}`
+                  const isSaving = saving === key
+
+                  return (
+                    <Card key={key} className="border-2">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                        <div>
+                          <CardTitle className="text-lg font-display">
+                            {sectionLabels[section.sectionKey] ||
+                              section.sectionKey}
+                          </CardTitle>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {section.pageSlug} / {section.sectionKey}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleSave(section)}
+                          disabled={isSaving}
+                        >
+                          {isSaving ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4 mr-2" />
+                          )}
+                          Opslaan
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Title field */}
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-1.5">
+                            Titel
+                          </label>
+                          <Input
+                            value={section.title}
+                            onChange={(e) =>
+                              updateSection(
+                                section.pageSlug,
+                                section.sectionKey,
+                                "title",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Voer een titel in..."
+                            className="border-2"
+                          />
+                        </div>
+
+                        {/* Content field */}
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-1.5">
+                            Inhoud
+                          </label>
+                          <ContentEditor
+                            value={section.content}
+                            onChange={(val) =>
+                              updateSection(
+                                section.pageSlug,
+                                section.sectionKey,
+                                "content",
+                                val
+                              )
+                            }
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}

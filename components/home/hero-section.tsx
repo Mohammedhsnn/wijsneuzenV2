@@ -1,8 +1,11 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Castle } from "lucide-react"
+import { getPageContent } from "@/lib/page-content"
 
-export function HeroSection() {
+export async function HeroSection() {
+  const hero = await getPageContent("home", "hero")
+
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
       {/* Background with sepia overlay */}
@@ -26,13 +29,13 @@ export function HeroSection() {
             <Castle className="h-12 w-12 text-primary mx-auto mb-4" />
             
             <h1 className="font-display text-4xl md:text-5xl font-bold text-sepia-dark mb-4 text-balance">
-              Historie Wandeltour Philippine
+              {hero.title}
             </h1>
             
             <div className="w-16 h-1 bg-primary mx-auto mb-6" />
             
             <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">
-              Ontdek het rijke verleden van de mosselstad tijdens deze sfeervolle historische wandeling langs monumenten en verhalen.
+              {hero.content}
             </p>
             
             <Button asChild size="lg" className="font-semibold">

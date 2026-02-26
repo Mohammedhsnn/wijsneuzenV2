@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, MapPin } from "lucide-react"
+import { getPageContent } from "@/lib/page-content"
 
 const stops = [
   {
@@ -36,16 +37,18 @@ const stops = [
   },
 ]
 
-export function RoutePreviewSection() {
+export async function RoutePreviewSection() {
+  const routePreview = await getPageContent("home", "route-preview")
+
   return (
     <section className="py-16 md:py-24 bg-secondary/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance">
-            De Route
+            {routePreview.title}
           </h2>
           <p className="text-muted-foreground">
-            5 historische stops door Philippine
+            {routePreview.content}
           </p>
         </div>
 

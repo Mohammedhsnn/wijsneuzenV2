@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { getAllPublishedPosts } from "@/lib/blog-data"
 import Link from "next/link"
 import { Calendar, User, ArrowRight } from "lucide-react"
+import { getPageContent } from "@/lib/page-content"
 
-export default function BlogPage() {
+export default async function BlogPage() {
   const posts = getAllPublishedPosts()
+  const heroContent = await getPageContent("blog", "hero")
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -22,11 +24,11 @@ export default function BlogPage() {
           <div className="container mx-auto px-4 relative">
             <div className="max-w-2xl mx-auto text-center">
               <h1 className="font-display text-4xl md:text-5xl font-bold mb-4 text-balance">
-                Blog
+                {heroContent.title}
               </h1>
               <div className="w-16 h-1 bg-primary mx-auto mb-6" />
               <p className="text-cream/80 leading-relaxed">
-                Verhalen, nieuws en ontdekkingen over de rijke geschiedenis van Philippine.
+                {heroContent.content}
               </p>
             </div>
           </div>

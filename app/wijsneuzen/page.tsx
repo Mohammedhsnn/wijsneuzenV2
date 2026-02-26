@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { Users, Mail, MapPin, ExternalLink } from "lucide-react"
+import { getPageContents } from "@/lib/page-content"
 
 const teamMembers = [
   {
@@ -35,7 +36,12 @@ const sponsors = [
   { name: "Sponsor 4", logo: null },
 ]
 
-export default function WijsneuzenPage() {
+export default async function WijsneuzenPage() {
+  const content = await getPageContents("wijsneuzen")
+  const hero = content["hero"] || { title: "Project Philippine", content: "" }
+  const story = content["our-story"] || { title: "Our Story", content: "" }
+  const contact = content["contact"] || { title: "De Wijsneuzen", content: "" }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
@@ -52,10 +58,10 @@ export default function WijsneuzenPage() {
           
           <div className="relative z-10 container mx-auto px-4 text-center">
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-cream mb-4 italic text-balance">
-              Project Philippine
+              {hero.title}
             </h1>
             <p className="text-cream/80 max-w-2xl mx-auto leading-relaxed text-pretty">
-              A historical walking tour bridging the rich maritime past and the vibrant present of Philippine.
+              {hero.content}
             </p>
             <div className="mt-8">
               <Button asChild size="lg" className="font-semibold">
@@ -72,17 +78,10 @@ export default function WijsneuzenPage() {
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto">
               <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8">
-                Our Story
+                {story.title}
               </h2>
               
-              <div className="prose prose-lg max-w-none text-muted-foreground space-y-6">
-                <p className="leading-relaxed">
-                  {"The 'De Wijsneuzen' initiative began as a passion project to preserve the unique coastal history of Philippine. What once was a bustling harbor for mussels is now a town of stories, and we aim to tell them through every step of this guided experience."}
-                </p>
-                <p className="leading-relaxed">
-                  {"Through careful archival research and oral histories from local elders, we've mapped out a route that showcases the hidden gems and monumental shifts in our local landscape."}
-                </p>
-              </div>
+              <div className="prose prose-lg max-w-none text-muted-foreground space-y-6" dangerouslySetInnerHTML={{ __html: story.content }} />
             </div>
           </div>
         </section>
@@ -154,11 +153,11 @@ export default function WijsneuzenPage() {
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto">
               <h2 className="font-display text-3xl font-bold mb-4 border-b-2 border-primary pb-4 inline-block">
-                De Wijsneuzen
+                {contact.title}
               </h2>
               
               <p className="text-cream/80 mb-8 leading-relaxed">
-                Preserving the heritage of Philippine through interactive storytelling and community engagement.
+                {contact.content}
               </p>
 
               <div className="grid md:grid-cols-2 gap-8">

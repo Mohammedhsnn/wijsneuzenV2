@@ -11,6 +11,7 @@ const navItems = [
   { href: "/route", label: "De Route" },
   { href: "/wijsneuzen", label: "De Wijsneuzen" },
   { href: "/blog", label: "Blog" },
+  { href: "/admin", label: "Admin" },
 ]
 
 export function Navigation() {
